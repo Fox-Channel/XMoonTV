@@ -20,14 +20,13 @@ export async function middleware(request: NextRequest) {
     return handleAuthFailure(request, pathname);
   }
 
-  // localstorage模式：如果不需要密码验证，直接跳过
+  // localstorage模式：直接允许请求继续，无需密码验证
   if (storageType === 'localstorage') {
-    // 直接允许请求继续，无需密码验证
     return NextResponse.next();
   }
 
   // 其他模式：只验证签名
-  // 检查是否有用户名（非localStorage模式下密码不存储在cookie中）
+  // 检查是否有用户名和签名（非localStorage模式下不再使用密码）
   if (!authInfo.username || !authInfo.signature) {
     return handleAuthFailure(request, pathname);
   }
@@ -37,7 +36,7 @@ export async function middleware(request: NextRequest) {
     const isValidSignature = await verifySignature(
       authInfo.username,
       authInfo.signature,
-      process.env.PASSWORD || ''
+      process.env.PASSWORD || '' // 这里你可以忽略密码，或根据需要使用其他验证方式
     );
 
     // 签名验证通过即可
