@@ -1,7 +1,6 @@
 /* eslint-disable no-console */
 
 import { NextRequest, NextResponse } from 'next/server';
-
 import { getAuthInfoFromCookie } from '@/lib/auth';
 
 export async function middleware(request: NextRequest) {
@@ -14,12 +13,6 @@ export async function middleware(request: NextRequest) {
 
   const storageType = process.env.NEXT_PUBLIC_STORAGE_TYPE || 'localstorage';
 
-  if (!process.env.PASSWORD) {
-    // 如果没有设置密码，重定向到警告页面
-    const warningUrl = new URL('/warning', request.url);
-    return NextResponse.redirect(warningUrl);
-  }
-
   // 从cookie获取认证信息
   const authInfo = getAuthInfoFromCookie(request);
 
@@ -27,11 +20,9 @@ export async function middleware(request: NextRequest) {
     return handleAuthFailure(request, pathname);
   }
 
-  // localstorage模式：在middleware中完成验证
+  // localstorage模式：如果不需要密码验证，直接跳过
   if (storageType === 'localstorage') {
-    if (!authInfo.password || authInfo.password !== process.env.PASSWORD) {
-      return handleAuthFailure(request, pathname);
-    }
+    // 直接允许请求继续，无需密码验证
     return NextResponse.next();
   }
 
